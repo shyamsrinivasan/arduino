@@ -122,17 +122,17 @@ void setup() {
 
 }
 
-void loop() {
-  readDHT22();
+void loop() {  
+  readDHT22();  
   Write_SDcard();
-  delay(5000);  
+  delay(900000);    
 }
 
 
 // Read DHT sensor data
 void readDHT22(){
   // Wait a few seconds between measurements.
-  delay(5000);
+  // delay(2000);
 
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
