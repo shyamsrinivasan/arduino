@@ -33,7 +33,7 @@ void Initialize_SDcard()
   // if the file is available, write to it:
   if (dataFile) {
     // dataFile.println("Year,Month,Date,Hour,Minute,Second,Temperature,Humidity,Heat Index"); //Write the first row of the excel file
-    dataFile.println("Date \tTime \tTemperature \tHumidity \tHeat Index");
+    dataFile.println("Year \tMonth \Date \tHour \Minute \tSecond \tTemperature \tHumidity \tHeat Index");
     dataFile.close();
   }
 }
