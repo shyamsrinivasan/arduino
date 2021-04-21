@@ -54,35 +54,34 @@ void Write_SDcard()
   if (dataFile) {
      //Store year on SD card
     dataFile.print(now.year(), DEC);
-    dataFile.print(","); //Move to next column using a ","
+    dataFile.print("-"); //Move to next column using a ","
 
     //Store month on SD card
     dataFile.print(now.month(), DEC); 
-    dataFile.print(","); 
+    dataFile.print("-"); 
 
     //Store date on SD card
     dataFile.print(now.day(), DEC); 
-    dataFile.print(","); 
+    dataFile.print("\t");
 
     //store hour on SD card
     dataFile.print(now.hour(), DEC); 
-    dataFile.print(",");
+    dataFile.print(":");
     //store minute on SD card
     dataFile.print(now.minute(), DEC);   
-    dataFile.print(",");
+    dataFile.print(":");
     //store second on SD card
     dataFile.print(now.second(), DEC);   
-    dataFile.print(",");    
+    dataFile.print("\t");    
 
     dataFile.print(t); //Store date on SD card
-    dataFile.print(","); //Move to next column using a ","
+    dataFile.print("\t"); //Move to next column using a ","
 
     dataFile.print(h); //Store date on SD card
-    dataFile.print(","); //Move to next column using a ","
+    dataFile.print("\t"); //Move to next column using a ","
 
     // Compute heat index in Celsius (isFahreheit = false)
     dataFile.print(dht.computeHeatIndex(t, h, false));  //Store date on SD card
-    dataFile.print(","); //Move to next column using a ","
 
     dataFile.println(); //End of Row move to next row
     dataFile.close(); //Close the file
