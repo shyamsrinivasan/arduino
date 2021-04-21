@@ -32,7 +32,8 @@ void Initialize_SDcard()
   File dataFile = SD.open("LoggerCD.txt", FILE_WRITE);
   // if the file is available, write to it:
   if (dataFile) {
-    dataFile.println("Year,Month,Date,Hour,Minute,Second,Temperature,Humidity,Heat Index"); //Write the first row of the excel file
+    // dataFile.println("Year,Month,Date,Hour,Minute,Second,Temperature,Humidity,Heat Index"); //Write the first row of the excel file
+    dataFile.println("Date \tTime \tTemperature \tHumidity \tHeat Index");
     dataFile.close();
   }
 }
@@ -52,24 +53,26 @@ void Write_SDcard()
   
   // if the file is available, write to it:
   if (dataFile) {
-     //Store year on SD card
+     //Store year on SD card     
+    // ardprintf("%d-%d-%d", now.year(), now.month(), now.day());
     dataFile.print(now.year(), DEC);
-    dataFile.print("-"); //Move to next column using a ","
+    dataFile.print("\t"); //Move to next column using a ","
 
     //Store month on SD card
     dataFile.print(now.month(), DEC); 
-    dataFile.print("-"); 
+    dataFile.print("\t"); 
 
     //Store date on SD card
     dataFile.print(now.day(), DEC); 
     dataFile.print("\t");
 
     //store hour on SD card
+    //ardprintf("%d:%d:%d", now.hour(), now.minute(), now.second());
     dataFile.print(now.hour(), DEC); 
-    dataFile.print(":");
+    dataFile.print("\t");
     //store minute on SD card
     dataFile.print(now.minute(), DEC);   
-    dataFile.print(":");
+    dataFile.print("\t");
     //store second on SD card
     dataFile.print(now.second(), DEC);   
     dataFile.print("\t");    
