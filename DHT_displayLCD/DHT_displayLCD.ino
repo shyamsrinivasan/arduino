@@ -69,7 +69,7 @@ void loop() {
   //lcd.print(F("HI:"));
   
   
-  delay(10000);
+  delay(5000);
   lcd.clear();
   //delay(1000);
   //lcd.setCursor(2, 1);
