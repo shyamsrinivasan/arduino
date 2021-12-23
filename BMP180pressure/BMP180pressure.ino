@@ -6,7 +6,7 @@
 /*To assign a unique ID, simply
    provide an appropriate value in the constructor below */
 
-Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085);
+Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085); /*0x77*/
 LCD_I2C lcd(0x27);
 
 void setup() 
@@ -59,9 +59,11 @@ void loop()
     /* Then convert the atmospheric pressure, and SLP to altitude         */
     /* Update this next line with the current SLP for better results      */
     float seaLevelPressure = 1009;
-    altitude = bmp.pressureToAltitude(seaLevelPressure, event.pressure)
-
+    
     /* Display atmospheric pressue in hPa, current atmospheric temperature and Altitude */
+    Serial.print("Sea level pressure:   ");
+    Serial.print(seaLevelPressure);
+    Serial.print(" hPa\n");
     Serial.print("Pressure:    ");
     Serial.print(event.pressure);
     Serial.println(" hPa");
@@ -69,15 +71,15 @@ void loop()
     Serial.print(temperature);
     Serial.println(" C");   
     Serial.print("Altitude:    "); 
-    Serial.print(altitude); 
+    Serial.print(bmp.pressureToAltitude(seaLevelPressure, event.pressure)); 
     Serial.println(" m");
     Serial.println("");
 
     lcd.print(event.pressure);
     lcd.print(F("hPa"));
     lcd.setCursor(0,1);
-    lcd.print(altitude);
-    lcd.print(F("m"));
+    /*lcd.print(altitude);
+    lcd.print(F("m"));*/
   }
   else
   {
