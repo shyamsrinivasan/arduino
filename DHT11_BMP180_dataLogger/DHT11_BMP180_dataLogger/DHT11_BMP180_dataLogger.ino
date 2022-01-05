@@ -18,7 +18,7 @@ DHT dht(DHTPIN, DHTTYPE);
 
 /*To assign a unique ID, simply
    provide an appropriate value in the constructor below */
-Adafruit_BMP085_Unified bmp; // = Adafruit_BMP085_Unified(10085); /*0x77*/
+Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085); /*0x77*/
 
 // for the data logging shield, we use digital pin 10 for the SD cs line
 const int chipSelect = 10;
