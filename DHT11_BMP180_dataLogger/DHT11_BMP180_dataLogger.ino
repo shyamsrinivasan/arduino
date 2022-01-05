@@ -229,6 +229,6 @@ void loop() {
   // Write data to file
   Write_SDcard(dataptr2);  
 
-  delay(3000);
-  //delay(1800000); // 30 minutes between measurements
+  //delay(3000);
+  delay(1800000); // 30 minutes between measurements
 }
