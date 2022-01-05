@@ -113,158 +113,117 @@ void Initialize_SDcard()
   // if the file is available, write to it:
   if (dataFile) {
     // dataFile.println("Year,Month,Date,Hour,Minute,Second,Temperature,Humidity,Heat Index"); //Write the first row of the excel file
-    dataFile.println("Year\tMonth\tDate\tHour\tMinute\tSecond\tTemperature\tHumidity\tHeat Index");
+    dataFile.println("Year\tMonth\tDate\tHour\tMinute\tSecond\tTemperature\tHumidity\tHeat Index\tSea Level Pressure\tPressure\tAltitude");
     dataFile.close();
   }
 }
 
 //Write data to SD card
-void Write_SDcard()
+void Write_SDcard(TPdata *data)
 {
-    // open the file. note that only one file can be open at a time,
+  // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open("LoggerCD.txt", FILE_WRITE);
 
-  // read current date and time
-  DateTime now = rtc.now();
-
-  float t = dht.readTemperature();
-  float h = dht.readHumidity();
-  
-  // if the file is available, write to it:
-  if (dataFile) {
-     //Store year on SD card     
-    // ardprintf("%d-%d-%d", now.year(), now.month(), now.day());
-    dataFile.print(now.year(), DEC);
-    dataFile.print("\t"); //Move to next column using a ","
-
-    //Store month on SD card
-    dataFile.print(now.month(), DEC); 
-    dataFile.print("\t"); 
-
-    //Store date on SD card
-    dataFile.print(now.day(), DEC); 
+  // if the file is available, write to it
+  if (dataFile)
+  {
+    // Write date and time to file from data
+    dataFile.print(data->Dyear, DEC);
+    dataFile.print("\t");
+    dataFile.print(data->Dmonth, DEC);
+    dataFile.print("\t");
+    dataFile.print(data->Dday, DEC);
     dataFile.print("\t");
 
-    //store hour on SD card
-    //ardprintf("%d:%d:%d", now.hour(), now.minute(), now.second());
-    dataFile.print(now.hour(), DEC); 
+    dataFile.print(data->Dhour, DEC);
     dataFile.print("\t");
-    //store minute on SD card
-    dataFile.print(now.minute(), DEC);   
+    dataFile.print(data->Dminute, DEC);
     dataFile.print("\t");
-    //store second on SD card
-    dataFile.print(now.second(), DEC);   
-    dataFile.print("\t");    
+    dataFile.print(data->Dsec, DEC);
+    dataFile.print("\t");
 
-    dataFile.print(t); //Store date on SD card
-    dataFile.print("\t"); //Move to next column using a ","
+    //Write Temperature and Pressure data to file
+    dataFile.print(data->temp);
+    dataFile.print(data->Rhumid);
+    dataFile.print(data->heatindex);
+    dataFile.print(data->Spressure);
+    dataFile.print(data->pressure);
+    dataFile.print(data->altitude);
+    dataFile.println();
 
-    dataFile.print(h); //Store date on SD card
-    dataFile.print("\t"); //Move to next column using a ","
-
-    // Compute heat index in Celsius (isFahreheit = false)
-    dataFile.print(dht.computeHeatIndex(t, h, false));  //Store date on SD card
-
-    dataFile.println(); //End of Row move to next row
-    dataFile.close(); //Close the file
-
-    Serial.println("Data Write successful");
+    dataFile.close();
+    Serial.println("Write to File Successful");
   }
-  else {    
-    Serial.println("OOPS!! SD card writing failed");
-    
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(", ");    
-    Serial.print(now.hour(), DEC);
+  else
+  {
+    Serial.println("Write to File Unsuccessful");
+
+    Serial.print(data->Dyear, DEC);
+    Serial.print("-");
+    Serial.print(data->Dmonth, DEC);
+    Serial.print("-");
+    Serial.print(data->Dday, DEC);
+    Serial.print("\t");
+
+    Serial.print(data->Dhour, DEC);
     Serial.print(":");
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.print(",");
+    Serial.print(data->Dminute, DEC);
+    Serial.print(":");
+    Serial.print(data->Dsec, DEC);
+    Serial.print("\t");
+
     Serial.print("Temperature: ");
-    Serial.print(t);
-    Serial.print(",");
+    Serial.print(data->temp);
+    Serial.print("C, ");
     Serial.print("RH: ");
-    Serial.print(h);
-    Serial.print("Sea level pressure:   ");
-    Serial.print(seaLevelPressure);
-    Serial.print(" hPa\n");
-    Serial.print("Pressure:    ");
-    Serial.print(event.pressure);
-    Serial.println(" hPa");
-    Serial.print("Temperature: ");
-    Serial.print(temperature);
-    Serial.println(" C");   
-    Serial.print("Altitude:    "); 
-    Serial.print(bmp.pressureToAltitude(seaLevelPressure, event.pressure)); 
-    Serial.println(" m");
-    Serial.println();    
+    Serial.print(data->Rhumid);
+    Serial.print("% ");
+    Serial.print("Heat Index: ");
+    Serial.print(data->heatindex);
+    Serial.print("C, ");
+    Serial.print("Sea level Pressure: ");
+    Serial.print(data->Spressure);
+    Serial.print("hPa, ");
+    Serial.print("Current Pressure: ");
+    Serial.print(data->pressure);
+    Serial.print("hPa, ");
+    Serial.print("Altitude: ");
+    Serial.print(data->altitude);
+    Serial.print("m");
+    Serial.println();
   }
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   dht.begin();
-  Initialize_SDcard();
-  
-  /* Initialise the sensor */
-  if(!bmp.begin())
+
+  //Initialise the sensor
+  if (!bmp.begin())
   {
-    /* There was a problem detecting the BMP085 ... check your connections */
+    //There was a problem detecting the BMP085 ... check your connections
     Serial.print("Ooops, no BMP180 detected ... Check your wiring or I2C ADDR!");
-    /*lcd.print("Ooops! No BMP180");*/
-    while(1);
-  }   
+    while (1);
+  }
+
+  // Initialize SD card
+  Initialize_SDcard();
   Wire.begin();
-  // while (!Serial) ; // wait for serial
 }
 
-void loop() {  
-  readDHT22();
-  
-  /* Get a new sensor event */ 
-  sensors_event_t event;
-  bmp.getEvent(&event);  
+void loop() {
 
-  if (event.pressure)
-  {
-    float temperature;
-    bmp.getTemperature(&temperature);
-    float seaLevelPressure = 1009;    
-  }
-  
-  /* Write data to SD cardd */
-  Write_SDcard();
-  delay(900000);    
+  // Collect sensor data in struct
+  TPdata *dataptr = &Oldata;
+  TPdata Finaldata = setTemperature(dataptr);
+  TPdata *dataptr2 = &Finaldata;
+  Finaldata = setPressure(dataptr2);
+
+  // Write data to file
+  Write_SDcard(dataptr2);  
+
+  delay(3000);
+  //delay(1800000); // 30 minutes between measurements
 }
-
-
-// Read DHT sensor data
-void readDHT22(){
-  // Wait a few seconds between measurements.
-  // delay(2000);
-
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-  // Read temperature as Fahrenheit (isFahrenheit = true)
-  float f = dht.readTemperature(true);
-
-  Serial.println("Sensor read successful");
-
-  // Check if any reads failed and exit early (to try again).
-  if (isnan(h) || isnan(t) || isnan(f)) {
-    Serial.println(F("Failed to read from DHT sensor!"));
-    return;
-  }
-}
-
-
-// Read BMP180 data
