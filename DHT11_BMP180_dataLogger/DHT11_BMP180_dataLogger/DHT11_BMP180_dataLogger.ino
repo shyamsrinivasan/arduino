@@ -18,10 +18,84 @@ DHT dht(DHTPIN, DHTTYPE);
 
 /*To assign a unique ID, simply
    provide an appropriate value in the constructor below */
-Adafruit_BMP085_Unified bmp = Adafruit_BMP085_Unified(10085); /*0x77*/
+Adafruit_BMP085_Unified bmp; // = Adafruit_BMP085_Unified(10085); /*0x77*/
 
 // for the data logging shield, we use digital pin 10 for the SD cs line
 const int chipSelect = 10;
+
+struct TPdata {
+  int Dyear;
+  int Dmonth;
+  int Dday;
+  int Dhour;
+  int Dminute;
+  int Dsec;
+  float temp;
+  float Rhumid;
+  float Ftemp;
+  float heatindex;
+  float Spressure;
+  float pressure;
+  float altitude;
+};
+
+// base line pressure @ sea level for BMP180
+//float seaLevelPressure = 1009;
+
+// Initial global struct of TPdata type
+TPdata Oldata = {2022, 01, 05, 00, 00, 00, 0.0, 0.0, 0.0, 0.0, 1012, 0.0, 0.0};
+
+TPdata setPressure(TPdata *data)
+{
+  /* Get a new sensor event */
+  sensors_event_t event;
+  bmp.getEvent(&event);
+
+  //Serial.println(data->Spressure);
+
+  if (event.pressure)
+  {
+    data->pressure = event.pressure;
+    data->altitude = bmp.pressureToAltitude(data->Spressure, event.pressure);
+    return *data;
+  }
+  else
+  {
+    Serial.println("BMP180 Pressure Sensor read unsuccessful");
+    return *data;
+  }
+}
+
+TPdata setTemperature(TPdata *data)
+{
+  // read current date and time
+  DateTime now = rtc.now();
+
+  data->Dyear = now.year();
+  data->Dmonth = now.month();
+  data->Dday = now.day();
+  data->Dhour = now.hour();
+  data->Dminute = now.minute();
+  data->Dsec = now.second();
+
+  // read DHT22/DHT11 data
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  float f = dht.readTemperature(true);
+  float hi = dht.computeHeatIndex(t, h, false);
+
+  // Check if any reads failed and exit early (to try again).
+  if (isnan(h) || isnan(t) || isnan(f))
+  {
+    Serial.println(F("Failed to read from DHT sensor!"));
+    return *data;
+  }
+  data->temp = t;
+  data->Rhumid = h;
+  data->Ftemp = f;
+  data->heatindex = hi;
+  return *data;
+}
 
 // Initialize SD card module
 void Initialize_SDcard()
