@@ -153,7 +153,7 @@ void Write_SDcard(TPdata *data)
     dataFile.print(data->Spressure);
     dataFile.print("\t");
     dataFile.print(data->pressure);
-    dataFile.print("\t")
+    dataFile.print("\t");
     dataFile.print(data->altitude);
     dataFile.println();
 
