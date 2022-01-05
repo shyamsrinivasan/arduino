@@ -145,10 +145,15 @@ void Write_SDcard(TPdata *data)
 
     //Write Temperature and Pressure data to file
     dataFile.print(data->temp);
+    dataFile.print("\t");
     dataFile.print(data->Rhumid);
+    dataFile.print("\t");
     dataFile.print(data->heatindex);
+    dataFile.print("\t");
     dataFile.print(data->Spressure);
+    dataFile.print("\t");
     dataFile.print(data->pressure);
+    dataFile.print("\t")
     dataFile.print(data->altitude);
     dataFile.println();
 
