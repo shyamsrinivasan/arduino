@@ -1,8 +1,8 @@
 #define sensorPin A0
 
 
-const int dryValue = 632;
-const int wetValue = 250;
+const int dryValue = 634;
+const int wetValue = 321;
 int intervals = (dryValue - wetValue)/3;
 
 void setup() {
@@ -15,7 +15,7 @@ void loop() {
 
   
 
-  moisture_percent = (100 - ((moisture/1023.00) * 100));
+  moisture_percent = map(moisture, 634, 321, 0, 100);
   Serial.print("Moisture Analog: ");
   Serial.println(moisture);  
   Serial.print("Moisture category: ");
