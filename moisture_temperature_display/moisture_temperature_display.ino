@@ -16,7 +16,7 @@ DHT dht(DHTPIN, DHTTYPE);  // initialize DHT sensor
 Adafruit_BMP085 bmp; //Initialize BMP180
 RTClib rtc; // initialize DS1307 clock
 
-const int dryValue = 634; // moisture sensor dry value
+const int dryValue = 636; // moisture sensor dry value
 const int wetValue = 321; // moisture sensor wet value
 int intervals = (dryValue - wetValue)/3;  // intervals very wet, wet, dry
  
@@ -32,10 +32,11 @@ struct DataStruct {
   float humidity;
   float SeaLevelPressure;
   float P;
+  float moisture_percent;
   String moisture;
 };
 
-DataStruct oldData = {2023, 01, 01, 00, 00, 00, 0.0, 0.0, 100.8, 100.8, "Dry"};
+DataStruct oldData = {2023, 01, 01, 00, 00, 00, 0.0, 0.0, 100.8, 100.8, 0.0, "Dry"};
 
 // initialize SD card module
 void Initialize_SDcard()  {
@@ -52,7 +53,7 @@ void Initialize_SDcard()  {
   // if the file is available, write to it:
   if (dataFile) {
     // dataFile.println("Year,Month,Date,Hour,Minute,Second,Temperature,Humidity,Heat Index"); //Write the first row of the excel file
-    dataFile.println("Year\tMonth\tDate\tHour\tMinute\tSecond\tTemperature\tHumidity\tSea Level Pressure\tPressure\tSoil Moisture");
+    dataFile.println("Year\tMonth\tDate\tHour\tMinute\tSecond\tTemperature\tHumidity\tSea_Level_Pressure\tPressure\tSoil_Moisture_Percentage\tSoil_Moisture");
     dataFile.close();
   }
 }
@@ -87,6 +88,8 @@ void Write2SDcard(DataStruct *data) {
     data_file.print(data->P);
     data_file.print("/t");
     // soil moisture
+    data_file.print(data->moisture_percent);
+    data_file.print("/t");
     data_file.println(data->moisture);
 
     data_file.close();
@@ -122,7 +125,21 @@ void loop() {
   data.minute = now.minute();
   data.second = now.second();
 
+  Serial.print("Date: ");
+  Serial.print(data.year);
+  Serial.print("-");
+  Serial.print(data.month);
+  Serial.print("-");
+  Serial.print(data.day);
+  Serial.print(" ");
+  Serial.print(data.hour);
+  Serial.print(":");
+  Serial.print(data.minute);
+  Serial.print(":");
+  Serial.println(data.second);
+
   // temperature sensor
+  Serial.print("Tempertature: ");
   float cT = dht.readTemperature();
   float humidity = dht.readHumidity();
   float fT = dht.readTemperature(true);
@@ -133,12 +150,13 @@ void loop() {
   }
   else{
     lcd.print(cT, 1);
-    lcd.print("C, ");
+    lcd.print("C ");
     lcd.print(humidity, 1);
     lcd.print("%");
 
     Serial.print(cT, 1);
-    Serial.print("C, ");
+    Serial.println("C ");
+    Serial.print("Humidity: ");
     Serial.print(humidity, 1);
     Serial.println("%");
 
@@ -150,8 +168,8 @@ void loop() {
   // pressure sensor - sensor reads in Pa
   float cP = bmp.readPressure()/1000;
   lcd.print(cP, 1);
-  lcd.print("kPa");
-  lcd.print(",");
+  lcd.print("kPa ");  
+  Serial.print("Pressure: ");
   Serial.print(cP);
   Serial.println("kPa");
 
@@ -169,7 +187,7 @@ void loop() {
   String moisture_category;
   int moisture_level;
 
-  if(moisture > wetValue && moisture < (wetValue + intervals))
+  if(moisture >= wetValue && moisture < (wetValue + intervals))
   {
     moisture_category = "Very Wet";
     moisture_level = 3;
@@ -179,16 +197,22 @@ void loop() {
     moisture_category = "Wet";
     moisture_level = 2;
   }
-  else if(moisture < dryValue && moisture > (dryValue - intervals))
+  else if(moisture <= dryValue && moisture > (dryValue - intervals))
   {
     moisture_category = "Dry";
     moisture_level = 1;
   }
   // print moisture levels    
   lcd.print(moisture_category);  
-  Serial.println(moisture);
-  Serial.println(moisture_category);
+  Serial.print("Soil Moisture: ");
+  Serial.print(moisture);
+  Serial.print(" ");
+  Serial.print(moisture_category);
+  Serial.print(" ");
+  Serial.print(moisture_percent, 1);
+  Serial.println("%");
 
+  data.moisture_percent = moisture_percent;
   data.moisture = moisture_category;
 
   Write2SDcard(&data);
