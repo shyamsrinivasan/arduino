@@ -1,3 +1,4 @@
+#include <Wire.h>
 #include <LCD_I2C.h>
 #include <DHT.h>
 #include <Adafruit_BMP085.h>
