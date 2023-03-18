@@ -1,9 +1,8 @@
 #include <Wire.h>
-#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <DHT.h>
 #include <DS3231.h>
-// #include <SD.h>
+#include <SD.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -18,9 +17,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // ini
 DHT dht(DHTPIN, DHTTYPE);  // initialize DHT sensor
 RTClib rtc; // initialize clock
 
-const int dryValue = 636; // moisture sensor dry value
-const int wetValue = 321; // moisture sensor wet value
-int intervals = (dryValue - wetValue)/3;  // intervals very wet, wet, dry
 
 void setup() {
   Serial.begin(9600);
@@ -37,74 +33,80 @@ void setup() {
 
   display.clearDisplay(); // Clear the buffer    
   display.setTextColor(SSD1306_WHITE);  // set text color
+
+  // Initialize_SDcard(); // initialize SD card
 }
 
 void loop() {
   display.clearDisplay(); // Clear the buffer    
   display.setTextSize(1); // set display font size  
   display.setCursor(0, 0);
-
-  // temperature sensor
+  
   delay(3000);
-  DateTime now = rtc.now();               // get current date/time
+  int x[5];
+  float val[3];
 
-  display.print(now.year());
-  display.print("-");
-  display.print(now.month());
-  display.print("-");
-  display.print(now.day());
+  // get current date/time 
+  x[0] = rtc.now().year();
+  x[1] = rtc.now().month();
+  x[2] = rtc.now().day();
+  x[3] = rtc.now().hour();
+  x[4] = rtc.now().minute();
+
+  display.print(x[0]);
+  display.print(F("-"));
+  display.print(x[1]);
+  display.print(F("-"));
+  display.print(x[2]);
   display.setCursor(60, 0);
-  display.print(now.hour());
-  display.print(":");
-  display.print(now.minute());
+  display.print(x[3]);
+  display.print(F(":"));
+  display.print(x[4]);
   display.display();
 
-  Serial.print(now.year());
-  Serial.print("-");
-  Serial.print(now.month());
-  Serial.print("-");
-  Serial.print(now.day());
-  Serial.print("  ");
-  Serial.print(now.hour());
-  Serial.print(":");
-  Serial.println(now.minute());
+  Serial.print(x[0]);
+  Serial.print(F("-"));
+  Serial.print(x[1]);
+  Serial.print(F("-"));
+  Serial.print(x[2]);
+  Serial.print(F("  "));
+  Serial.print(x[3]);
+  Serial.print(F(":"));
+  Serial.println(x[4]);
 
-  float cT = dht.readTemperature();
-  float humidity = dht.readHumidity();
-  float fT = dht.readTemperature(true);
+  // temperature sensor
+  val[0] = dht.readTemperature();
+  val[1] = dht.readHumidity();
+  // float fT = dht.readTemperature(true);
 
   display.setCursor(0, 10);
-  display.print("Air: ");  
-  if (isnan(cT) || isnan(fT) || isnan(humidity)){
-    display.print("DHT Failure");   
-    Serial.println("DHT Failure"); 
+  display.print(F("Air: "));  
+  if (isnan(val[0]) || isnan(val[1])){
+    display.print(F("DHT Failure"));   
+    Serial.println(F("DHT Failure")); 
     display.display();
   }
   else{
-    // display.print("Temperature:");
-    display.print(cT, 1);
-    // display.cp437(true);
-    // display.write(167);
-    display.print("C");
-    display.setCursor(70, 10);
-    // display.print("Humidity:");
-    display.print(humidity, 1);
-    display.print("%");
+    // temperature
+    display.print(val[0], 1);    
+    display.print(F("C"));
+    // humidity
+    display.setCursor(70, 10);    
+    display.print(val[1], 1);
+    display.print(F("%"));
     display.display(); 
 
-    Serial.print(cT, 1);
-    Serial.println("C ");
-    Serial.print("Humidity: ");
-    Serial.print(humidity, 1);
-    Serial.println("%");  
-    //data.T = cT;
-    //data.humidity = humidity;
+    Serial.print(val[0], 1);
+    Serial.println(F("C "));
+    Serial.print(F("Humidity: "));
+    Serial.print(val[1], 1);
+    Serial.println(F("%"));      
   }
 
   // soil moisture sensor
   int moisture = readSensor();  
   display.setCursor(0, 20);
-  display.print("Soil: ");
+  display.print(F("Soil: "));
   display.setCursor(30, 20);
   
   // check read failure of Soil moisture sensor
@@ -112,42 +114,26 @@ void loop() {
     display.print(F("SM Err"));
     display.display();
 
-    Serial.println("SM Err");
+    Serial.println(F("SM Err"));
   }
   float moisture_percent = map(moisture, 634, 321, 0, 100);
-  String moisture_category;
-  int moisture_level;
-
-  if(moisture >= wetValue && moisture < (wetValue + intervals))
-  {
-    moisture_category = "Very Wet";
-    moisture_level = 3;
-  }
-  else if(moisture > (wetValue + intervals) && moisture < (dryValue - intervals))
-  {
-    moisture_category = "Wet";
-    moisture_level = 2;
-  }
-  else if(moisture <= dryValue && moisture > (dryValue - intervals))
-  {
-    moisture_category = "Dry";
-    moisture_level = 1;
-  }
+  int moisture_level = check_moisture(moisture);
+  String moisture_category = return_moisture_category(moisture_level);    
 
   // print moisture levels    
   display.print(moisture_percent, 0);
-  display.print("%");
+  display.print(F("%"));
   display.setCursor(55, 20);
   display.print(moisture_category);  
   display.display();
 
-  Serial.print("Soil Moisture: ");
+  Serial.print(F("Soil Moisture: "));
   Serial.print(moisture);
-  Serial.print(" ");
+  Serial.print(F(" "));
   Serial.print(moisture_category);
-  Serial.print(" ");
+  Serial.print(F(" "));
   Serial.print(moisture_percent, 1);
-  Serial.println("%");
+  Serial.println(F("%"));
 
   delay(1000);  
 }
@@ -156,4 +142,47 @@ int readSensor() {
   // read analog value from sensor
   int val = analogRead(sensorPin);
   return val;
+}
+
+int check_moisture(int sensor_value)  {
+  // check and return moisture level category
+  const int dryValue = 636; // moisture sensor dry value
+  const int wetValue = 321; // moisture sensor wet value
+  int intervals = (dryValue - wetValue)/3;  // intervals very wet, wet, dry
+
+  int moisture_level;
+
+  if(sensor_value >= wetValue && sensor_value < (wetValue + intervals))
+  {   
+    moisture_level = 3;
+  }
+  else if(sensor_value > (wetValue + intervals) && sensor_value < (dryValue - intervals))
+  {    
+    moisture_level = 2;
+  }
+  else if(sensor_value <= dryValue && sensor_value > (dryValue - intervals))
+  {
+    moisture_level = 1;
+  }
+
+  return moisture_level;
+}
+
+String return_moisture_category(int moisture_level) {
+  // return moisture category string based on moisture value
+  String moisture_category;  
+
+  if(moisture_level == 3)
+  {
+    moisture_category = "Very Wet";
+  }
+  else if(moisture_level == 2)
+  {
+    moisture_category = "Wet";
+  }
+  else if(moisture_level == 1)
+  {    
+    moisture_category = "Dry";
+  }
+  return moisture_category;
 }
