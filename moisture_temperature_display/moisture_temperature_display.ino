@@ -185,24 +185,9 @@ void loop() {
     Serial.println("SM Err");
   }
   float moisture_percent = map(moisture, 634, 321, 0, 100);
-  String moisture_category;
-  int moisture_level;
-
-  if(moisture >= wetValue && moisture < (wetValue + intervals))
-  {
-    moisture_category = "Very Wet";
-    moisture_level = 3;
-  }
-  else if(moisture > (wetValue + intervals) && moisture < (dryValue - intervals))
-  {
-    moisture_category = "Wet";
-    moisture_level = 2;
-  }
-  else if(moisture <= dryValue && moisture > (dryValue - intervals))
-  {
-    moisture_category = "Dry";
-    moisture_level = 1;
-  }
+  int moisture_level = check_moisture(moisture);
+  String moisture_category = return_moisture_category(moisture_level);
+ 
   // print moisture levels    
   lcd.print(moisture_category);  
   Serial.print("Soil Moisture: ");
@@ -226,4 +211,47 @@ int readSensor() {
   // read analog value from sensor
   int val = analogRead(sensorPin);
   return val;
+}
+
+int check_moisture(int sensor_value)  {
+  // check and return moisture level category
+  int dryValue = 636; // moisture sensor dry value
+  int wetValue = 321; // moisture sensor wet value
+  int intervals = (dryValue - wetValue)/3;  // intervals very wet, wet, dry
+
+  int moisture_level;
+
+  if(sensor_value >= wetValue && sensor_value < (wetValue + intervals))
+  {   
+    moisture_level = 3;
+  }
+  else if(sensor_value > (wetValue + intervals) && sensor_value < (dryValue - intervals))
+  {    
+    moisture_level = 2;
+  }
+  else if(sensor_value <= dryValue && sensor_value > (dryValue - intervals))
+  {
+    moisture_level = 1;
+  }
+
+  return moisture_level;
+}
+
+String return_moisture_category(int moisture_level) {
+  // return moisture category string based on moisture value
+  String moisture_category;  
+
+  if(moisture_level == 3)
+  {
+    moisture_category = "Very Wet";
+  }
+  else if(moisture_level == 2)
+  {
+    moisture_category = "Wet";
+  }
+  else if(moisture_level == 1)
+  {    
+    moisture_category = "Dry";
+  }
+  return moisture_category;
 }
