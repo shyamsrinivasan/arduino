@@ -11,7 +11,6 @@
 #define DHTPIN 2  // DHT digital PIN
 #define DHTTYPE DHT22 // DHT sensor type DHT11 or DHT22
 #define sensorPin A0  // sensor pin for moisture sensor
-// #define SDcsPIN 10  // for data logging use digital pin 10
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // initialize OLED display
 DHT dht(DHTPIN, DHTTYPE);  // initialize DHT sensor
@@ -33,8 +32,6 @@ void setup() {
 
   display.clearDisplay(); // Clear the buffer    
   display.setTextColor(SSD1306_WHITE);  // set text color
-
-  // Initialize_SDcard(); // initialize SD card
 }
 
 void loop() {
@@ -146,8 +143,8 @@ int readSensor() {
 
 int check_moisture(int sensor_value)  {
   // check and return moisture level category
-  const int dryValue = 636; // moisture sensor dry value
-  const int wetValue = 321; // moisture sensor wet value
+  int dryValue = 636; // moisture sensor dry value
+  int wetValue = 321; // moisture sensor wet value
   int intervals = (dryValue - wetValue)/3;  // intervals very wet, wet, dry
 
   int moisture_level;
