@@ -11,16 +11,11 @@
 #define SLevelPressure 1008;  // sea level pressure in hPa
 #define SDcsPIN 10  // for the data logging shield, we use digital pin 10 for the SD cs line
 
-
 LCD_I2C lcd(0x27);  // default LCD I2C address
 DHT dht(DHTPIN, DHTTYPE);  // initialize DHT sensor
 Adafruit_BMP085 bmp; //Initialize BMP180
 RTClib rtc; // initialize DS1307 clock
 
-const int dryValue = 636; // moisture sensor dry value
-const int wetValue = 321; // moisture sensor wet value
-int intervals = (dryValue - wetValue)/3;  // intervals very wet, wet, dry
- 
 // data structure
 struct DataStruct {
   int year;
