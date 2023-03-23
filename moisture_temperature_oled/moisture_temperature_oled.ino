@@ -1,8 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <DHT.h>
-#include <DS3231.h>
-#include <SD.h>
+// #include <Adafruit_BMP280.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -14,12 +13,20 @@
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // initialize OLED display
 DHT dht(DHTPIN, DHTTYPE);  // initialize DHT sensor
-RTClib rtc; // initialize clock
+// Adafruit_BMP280 bmp; //Initialize BMP180/BMP280 I2C
 
 
 void setup() {
   Serial.begin(9600);
   dht.begin();
+  // unsigned status;  
+  // status = bmp.begin();  // bmp initialization
+  // if(!status)  {
+  //   Serial.println(F("Could not find a valid BMP280 sensor, check wiring or "
+  //                     "try a different address!"));
+  //   Serial.print("SensorID was: 0x"); Serial.println(bmp.sensorID(),16);
+  //   while(1);
+  // }
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -39,44 +46,19 @@ void loop() {
   display.setTextSize(1); // set display font size  
   display.setCursor(0, 0);
   
-  delay(3000);
-  int x[5];
-  float val[3];
-
-  // get current date/time 
-  x[0] = rtc.now().year();
-  x[1] = rtc.now().month();
-  x[2] = rtc.now().day();
-  x[3] = rtc.now().hour();
-  x[4] = rtc.now().minute();
-
-  display.print(x[0]);
-  display.print(F("-"));
-  display.print(x[1]);
-  display.print(F("-"));
-  display.print(x[2]);
-  display.setCursor(60, 0);
-  display.print(x[3]);
-  display.print(F(":"));
-  display.print(x[4]);
-  display.display();
-
-  Serial.print(x[0]);
-  Serial.print(F("-"));
-  Serial.print(x[1]);
-  Serial.print(F("-"));
-  Serial.print(x[2]);
-  Serial.print(F("  "));
-  Serial.print(x[3]);
-  Serial.print(F(":"));
-  Serial.println(x[4]);
-
+  delay(3000);  
+  float val[5]; 
+  
   // temperature sensor
   val[0] = dht.readTemperature();
   val[1] = dht.readHumidity();
   // float fT = dht.readTemperature(true);
+  // BMP180/BMP280 in kPa (sensor provides data in Pa)
+  // val[2] = bmp.readPressure()/1000;
+  // val[3] = bmp.readTemperature();
+  // val[4] = bmp.readAltitude(1008.1);
 
-  display.setCursor(0, 10);
+  // display.setCursor(0, 10);
   display.print(F("Air: "));  
   if (isnan(val[0]) || isnan(val[1])){
     display.print(F("DHT Failure"));   
@@ -99,6 +81,37 @@ void loop() {
     Serial.print(val[1], 1);
     Serial.println(F("%"));      
   }
+
+  display.setCursor(0, 10);
+  // if (isnan(val[2]) || isnan(val[3]) || isnan(val[4]))  {
+  //   display.print(F("BMP Failure"));   
+  //   Serial.println(F("BMP Failure")); 
+  //   display.display();
+  // }
+  // else  {
+  //   // pressure
+  //   display.print(val[2], 0);    
+  //   display.print(F("kPa"));
+  //   // temperature
+  //   display.setCursor(70, 10);    
+  //   display.print(val[3], 1);    
+  //   display.display(); 
+  //   // altitude
+  //   display.setCursor(90, 10);    
+  //   display.print(val[4], 1); 
+  //   display.print(F("m"));   
+  //   display.display(); 
+
+  //   Serial.print(F("Pressure: "));
+  //   Serial.print(val[2], 1);
+  //   Serial.println(F("kPa "));
+  //   Serial.print(F("Temperature: "));
+  //   Serial.print(val[3], 1);
+  //   Serial.print(F("C"));      
+  //   Serial.print(F("Altitude: "));
+  //   Serial.print(val[4], 1);
+  //   Serial.println(F("m"));  
+  // }
 
   // soil moisture sensor
   int moisture = readSensor();  
