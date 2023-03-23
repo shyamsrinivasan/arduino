@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <DHT.h>
+#include <RTClib.h>
 // #include <Adafruit_BMP280.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -13,12 +14,17 @@
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // initialize OLED display
 DHT dht(DHTPIN, DHTTYPE);  // initialize DHT sensor
+RTC_DS3231 rtc;   // DS3231 RTC initialization
 // Adafruit_BMP280 bmp; //Initialize BMP180/BMP280 I2C
+
+// buffer for DateTime.tostr
+char buf[20];
 
 
 void setup() {
   Serial.begin(9600);
   dht.begin();
+  rtc.begin();
   // unsigned status;  
   // status = bmp.begin();  // bmp initialization
   // if(!status)  {
@@ -58,7 +64,7 @@ void loop() {
   // val[3] = bmp.readTemperature();
   // val[4] = bmp.readAltitude(1008.1);
 
-  // display.setCursor(0, 10);
+    // display.setCursor(0, 10);
   display.print(F("Air: "));  
   if (isnan(val[0]) || isnan(val[1])){
     display.print(F("DHT Failure"));   
@@ -70,7 +76,7 @@ void loop() {
     display.print(val[0], 1);    
     display.print(F("C"));
     // humidity
-    display.setCursor(70, 10);    
+    display.setCursor(70, 0);    
     display.print(val[1], 1);
     display.print(F("%"));
     display.display(); 
@@ -83,6 +89,30 @@ void loop() {
   }
 
   display.setCursor(0, 10);
+  display.print(rtc.now().year()); 
+  display.print(F("-"));
+  display.print(rtc.now().month());
+  display.print(F("-"));
+  display.print(rtc.now().day());
+  display.print(F(" "));
+  display.print(rtc.now().hour());
+  display.print(F(":"));
+  display.print(rtc.now().minute());
+  display.print(F(":"));
+  display.print(rtc.now().second()); 
+
+  Serial.print(rtc.now().year());
+  Serial.print(F("-"));
+  Serial.print(rtc.now().month());
+  Serial.print(F("-"));
+  Serial.print(rtc.now().day());
+  Serial.print(F("  "));
+  Serial.print(rtc.now().hour());
+  Serial.print(F(":"));
+  Serial.print(rtc.now().minute());
+  Serial.print(F(":"));
+  Serial.println(rtc.now().second()); 
+
   // if (isnan(val[2]) || isnan(val[3]) || isnan(val[4]))  {
   //   display.print(F("BMP Failure"));   
   //   Serial.println(F("BMP Failure")); 
@@ -133,7 +163,7 @@ void loop() {
   // print moisture levels    
   display.print(moisture_percent, 0);
   display.print(F("%"));
-  display.setCursor(55, 20);
+  display.setCursor(57, 20);
   display.print(moisture_category);  
   display.display();
 
@@ -145,7 +175,7 @@ void loop() {
   Serial.print(moisture_percent, 1);
   Serial.println(F("%"));
 
-  delay(1000);  
+  delay(5000);  
 }
 
 int readSensor() {  
